@@ -208,8 +208,19 @@ export default function BarLanding() {
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
     let frame = 0;
     const layers = Array.from(container.querySelectorAll<HTMLElement>('[data-depth]'));
+    const photos = Array.from(container.querySelectorAll<HTMLElement>("[data-scroll-photo]"));
     const paint = () => {
       frame = 0;
+      const gallery = container.querySelector("#cocktail-gallery");
+      if (gallery) {
+        const bounds = gallery.getBoundingClientRect();
+        const progress = Math.max(-1, Math.min(1, (innerHeight / 2 - bounds.top - bounds.height / 2) / innerHeight));
+        photos.forEach((photo, i) => {
+          const distance = innerWidth < 641 ? 58 : 170;
+          photo.style.setProperty("--photo-shift", reduced.matches ? "0px" : `${progress * (i - 1) * distance}px`);
+          photo.style.setProperty("--photo-zoom", reduced.matches ? "1" : String(1.04 + Math.abs(progress) * .045));
+        });
+      }
       for (const layer of layers) {
         const rect = layer.parentElement!.getBoundingClientRect();
         if (rect.bottom < -100 || rect.top > innerHeight + 100) continue;
@@ -250,7 +261,6 @@ export default function BarLanding() {
         </div>
         <div className="hero-stage">
           <div className="hero-video-plane" data-depth="64"><HeroFilm/></div>
-          <figure className="hero-still" data-depth="-90"><Image unoptimized src="/grigoryev-malygin-bar/images/coupe-v1.jpg" width={1122} height={1402} alt="Коктейль с пеной и цедрой в тонком бокале"/></figure>
           <div className="hero-caption">Вкус. Подача. Атмосфера.</div>
         </div>
       </div>
@@ -272,17 +282,17 @@ export default function BarLanding() {
         <button type="button" aria-pressed={drinkware === 'disposable'} aria-controls="cocktail-gallery" onClick={() => setDrinkware('disposable')}>В одноразовой посуде</button>
       </fieldset>
       <div className="cocktail-gallery" id="cocktail-gallery" aria-label={drinkware === 'glass' ? 'Коктейли в стекле' : 'Коктейли в одноразовой посуде'}>
-        <figure className="cocktail-card" data-reveal>
+        <figure className="cocktail-card" data-reveal data-scroll-photo>
           {drinkware === 'glass'
             ? <Image unoptimized src="/grigoryev-malygin-bar/images/coupe-v1.jpg" alt="Светлый коктейль с пеной и цедрой в тонком бокале на ножке" width={1122} height={1402} loading="lazy"/>
             : <Image unoptimized src="/grigoryev-malygin-bar/images/disposable-raspberry-v2.jpg" alt="Розовый ягодный коктейль с пеной, малиновой пудрой и клубничным чипсом в одноразовом стакане" width={1122} height={1402} loading="lazy"/>}
         </figure>
-        <figure className="cocktail-card" data-reveal>
+        <figure className="cocktail-card" data-reveal data-scroll-photo>
           {drinkware === 'glass'
             ? <Image unoptimized src="/grigoryev-malygin-bar/images/highball-v1.jpg" alt="Золотистый коктейль со льдом и грейпфрутом в высоком бокале" width={1122} height={1402} loading="lazy"/>
             : <Image unoptimized src="/grigoryev-malygin-bar/images/disposable-cucumber-v2.jpg" alt="Зелёный хайбол со льдом, огуречной лентой и базиликом в высоком одноразовом стакане" width={1122} height={1402} loading="lazy"/>}
         </figure>
-        <figure className="cocktail-card" data-reveal>
+        <figure className="cocktail-card" data-reveal data-scroll-photo>
           {drinkware === 'glass'
             ? <Image unoptimized src="/grigoryev-malygin-bar/images/rocks-v1.jpg" alt="Янтарный коктейль с крупным кубом льда и цедрой в низком бокале" width={1122} height={1402} loading="lazy"/>
             : <Image unoptimized src="/grigoryev-malygin-bar/images/disposable-cherry-v2.jpg" alt="Рубиновый коктейль с крупным льдом и вишнями на шпажке в гранёном одноразовом стакане" width={1122} height={1402} loading="lazy"/>}
@@ -304,7 +314,7 @@ export default function BarLanding() {
           <figcaption><span>Коктейльный бар</span><span>{services[selectedFormat].title}</span></figcaption>
         </figure>
         <div className="tariff-list" aria-label="Тарифы коктейльного бара">
-          {services.slice(0,4).map((service,index) => <article className={`tariff${selectedFormat === index ? ' is-selected' : ''}`} key={service.id}>
+          {services.slice(0,4).map((service,index) => <article data-reveal className={`tariff${selectedFormat === index ? ' is-selected' : ''}`} key={service.id}>
             <h3><button type="button" id={`tariff-${service.id}`} aria-expanded={selectedFormat === index} aria-controls={`panel-${service.id}`} onClick={() => setSelectedFormat(index)}>
               <span>{service.title}</span><span className="tariff-symbol" aria-hidden="true">{selectedFormat === index ? '−' : '+'}</span>
             </button></h3>
@@ -319,7 +329,7 @@ export default function BarLanding() {
       </div>
       <div className="additional-heading"><h3>Ещё больше способов<br/>собрать гостей.</h3><p>Отдельные направления для вашего события</p></div>
       <nav className="service-links additional-services" aria-label="Дополнительные форматы">
-        {services.slice(4).map(service => <a key={service.id} className="service-page-link" href={serviceHref(service)}>
+        {services.slice(4).map(service => <a key={service.id} className="service-page-link" data-reveal href={serviceHref(service)}>
           <div className="service-link-copy"><h3>{service.title}</h3><p>{service.description}</p></div><span className="service-link-label">Подробнее ↗</span>
         </a>)}
       </nav>
@@ -359,9 +369,9 @@ export default function BarLanding() {
         <div data-reveal><h2 id="how-title">Хороший вечер<br/>начинается<br/>с разговора.</h2><p className="how-intro">Можно прийти с готовым заданием или пока только с датой и идеей.</p></div>
         <div className="how-content">
           <ol className="steps">
-            <li><span>01</span><div><h3>Расскажите о событии</h3><p>Дата, площадка, число гостей. Любимые напитки и пожелания к бару.</p></div></li>
-            <li><span>02</span><div><h3>Выберем меню и подачу</h3><p>Согласуем формат, время работы и стоимость. Соберём предложение под ваше мероприятие.</p></div></li>
-            <li><span>03</span><div><h3>Увидимся на площадке</h3><p>Подготовим бар к согласованному времени и возьмём обслуживание гостей на себя.</p></div></li>
+            <li data-reveal><span>01</span><div><h3>Расскажите о событии</h3><p>Дата, площадка, число гостей. Любимые напитки и пожелания к бару.</p></div></li>
+            <li data-reveal><span>02</span><div><h3>Выберем меню и подачу</h3><p>Согласуем формат, время работы и стоимость. Соберём предложение под ваше мероприятие.</p></div></li>
+            <li data-reveal><span>03</span><div><h3>Увидимся на площадке</h3><p>Подготовим бар к согласованному времени и возьмём обслуживание гостей на себя.</p></div></li>
           </ol>
           <Accordion className="faq">
             {faqs.map(faq => <AccordionItem key={faq.id} value={faq.id}>
